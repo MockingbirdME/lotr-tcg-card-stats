@@ -1,0 +1,28 @@
+{
+  "name": "lotr-tcg-card-stats",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MockingbirdME/lotr-tcg-card-stats.git"
+  },
+  "author": "Devon Henegar",
+  "license": "Beerware",
+  "bugs": {
+    "url": "https://github.com/MockingbirdME/lotr-tcg-card-stats/issues"
+  },
+  "homepage": "https://github.com/MockingbirdME/lotr-tcg-card-stats#readme",
+  "dependencies": {
+    "@ibm-cloud/cloudant": "^0.5.1",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "ibm-cloud-sdk-core": "^4.0.8"
+  }
+}
