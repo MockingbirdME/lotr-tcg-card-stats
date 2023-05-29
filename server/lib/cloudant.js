@@ -110,7 +110,7 @@ const views = {
     
     var overallWinPercent = overallWinCount / (overallWinCount + overallLoseCount)
     
-    emit(overallWinPercent, 'overall');
+    emit(overallWinPercent, overallWinCount + overallLoseCount);
   }`,
   allCardsById: `function(doc) {
     var split = doc._id.split(':');
@@ -120,9 +120,10 @@ const views = {
     var split = doc._id.split(':');
     if (split[0] !== "deck") return;
     
-    var winPercent = doc.winResults.count / (doc.winResults.count + doc.loseResults.count)
+    var gamesPlayed = doc.winResults.count + doc.loseResults.count;
+    var winPercent = doc.winResults.count / gamesPlayed;
     
-    emit(winPercent, 1)
+    emit(winPercent, gamesPlayed)
   }`,
   allDecksById: `function(doc) {
     var split = doc._id.split(':');
@@ -134,7 +135,17 @@ const views = {
   }`
 };
 
-const formats = ['Fellowship Block', 'Movie Block'];
+const formats = [
+  "Fellowship Block (PC)",
+  "Fellowship Block",
+  "Movie Block",
+  "Movie Block (PC)",
+  "Limited - FOTR",
+  "Open",
+  "Expanded",
+  "King Standard",
+  "Expanded (PC)"
+];
 
 for (const format of formats) {
   const winRateKey = `allCardsBy${format.replace(' ', '')}WinRate`;
@@ -173,8 +184,10 @@ for (const format of formats) {
       }
 
       var formatGamesPlayed = (formatWinCount + formatLoseCount);
+
+      var formatWinPercent = formatWinCount / formatGamesPlayed;
           
-      if (formatGamesPlayed) emit(formatGamesPlayed, 1);
+      if (formatGamesPlayed) emit(formatGamesPlayed, formatWinPercent);
   }`
 
   // TODO add per format deck count view. 
@@ -198,8 +211,29 @@ for (const inDeckCount of [1, 2, 3, 4]) {
       }
 
       var formatGamesPlayed = (formatWinCount + formatLoseCount);
-          
-      if (formatGamesPlayed) emit(formatGamesPlayed, 1);
+      var formatWinPercent = formatWinCount / formatGamesPlayed;
+
+      if (formatGamesPlayed) emit(formatGamesPlayed, formatWinPercent);
+  }`
+
+  const gamesPlayedRateKey = `allCardsByWinRateWith${inDeckCount}InDeck`;
+  views[gamesPlayedRateKey] = `function(doc) {
+    var split = doc._id.split(':');
+    if (split[0] !== "card") return;
+    var formatWinCount = 0;
+      if (doc.winResults && doc.winResults.inDeck && doc.winResults.inDeck["${inDeckCount}"]) {
+        formatWinCount = doc.winResults.inDeck["${inDeckCount}"];
+      }
+
+      var formatLoseCount = 0;
+      if (doc.loseResults &&  doc.loseResults.inDeck && doc.loseResults.inDeck["${inDeckCount}"]) {
+        formatLoseCount = doc.loseResults.inDeck["${inDeckCount}"];
+      }
+
+      var formatGamesPlayed = (formatWinCount + formatLoseCount);
+      var formatWinPercent = formatWinCount / formatGamesPlayed;
+
+      if (formatGamesPlayed) emit(formatWinPercent, formatGamesPlayed);
   }`
 }
 

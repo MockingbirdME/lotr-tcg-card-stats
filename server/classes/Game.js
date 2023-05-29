@@ -96,6 +96,8 @@ export default class Game {
         startingFellowship: actualStartingFellowship
       }
 
+      // TODO add Ring and Bearer or card list
+
       for (const card of drawDeck) {
         // TODO check for non-standard card and update data to standardize
         if (!details.drawDeck[card]) details.drawDeck[card] = { inDeck: 0, played: 0, seen: 0 }

@@ -10,6 +10,34 @@ let cardSaveMap = {};
 
 export default class Card {
 
+  static async loadWinRates({
+    view = 'allCardsByOverallWinRate',
+    ignorePercentRange = [40, 60],
+    minGames = 100
+  }) {
+
+      const {result: lowResult} = await cloudant.postView({
+        view,
+        startKey: 0,
+        endKey: ignorePercentRange[0]/100,
+        includeDocs: true
+      });
+
+      const lowRowsInBounds = lowResult.rows.filter(row => row.value >= minGames)
+
+      const {result: highResult} = await cloudant.postView({
+        view,
+        startKey: ignorePercentRange[1]/100,
+        endKey: 1,
+        includeDocs: true
+      });
+
+      // TODO put in some kind of filter for a small number of players, or perhaps simply remove the outliers and if it still qualifies keep it otherwise remove the row.
+      const highRowsInBounds = highResult.rows.filter(row => row.value >= minGames)
+
+      return [...lowRowsInBounds, ...highRowsInBounds];
+    }
+
   static async loadById(id) {
     const _id = Card.standardizeIdLength(id);
     const result = await cloudant.getDocument(`card:${_id}`)
@@ -93,6 +121,8 @@ export default class Card {
     if (!data._id && !data.id) throw new error("Cards require an ID");
     
     this.document = data;
+
+    // TODO Load Card name
     
   } // End constructor
 
