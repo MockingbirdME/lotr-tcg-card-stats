@@ -6,10 +6,24 @@ import Results from './Results.js';
 import { delay } from '../lib/utils.js';
 import { formats } from '../lib/constants.js';
 
+import { promoMap } from '../lib/constants.js';
+
 // This is used only for mass game adds run from a dev machine.
 let cardSaveMap = {};
 
 export default class Card {
+
+  static standardizeId(id) {
+    const strippedId = id.replace(/[tT*]/g, "");
+
+    if (promoMap[strippedId]) return promoMap[strippedId];
+
+    const [set, card] = strippedId.split("_");
+
+    if (set >= 50 && set < 79) return `${set - 50}_${card}`;
+
+    return `${set}_${card}`;
+  }
 
   static async loadAll() {
       const view = 'allCardsById';

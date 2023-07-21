@@ -7,6 +7,20 @@ import {delay} from '../lib/utils.js';
 
 export default class Game {
   
+  static async loadAll({format, since = 0} = {}) {
+    const view = format
+      ? `allGamesOf${format}Format`
+      : 'allGamesById';
+
+    const {result} = await cloudant.postView({
+      view,
+      startKey: since,
+      includeDocs: true
+    });
+
+    return result.rows.map(row => row.doc);
+  }
+
   static async loadById(id) {
     const result = await cloudant.getDocument(`game:${id}`)
       .then(data => (data.result))
@@ -66,7 +80,8 @@ export default class Game {
       format_name: format,
       winner,
       win_reason: winReason,
-      lose_reason: loseReason } = gameInfo;
+      lose_reason: loseReason,
+      start_date: timestamp } = gameInfo;
 
     const decks = Object.keys(rawDecksInfo).map(player => {
       const deck = rawDecksInfo[player]
@@ -91,59 +106,70 @@ export default class Game {
         won: winner === player,
         winReason,
         loseReason,
-        adventureDeck,
+        adventureDeck: adventureDeck.map(cardId => Card.standardizeId(cardId)),
         drawDeck: {},
         startingFellowship: actualStartingFellowship
       }
 
       // TODO add Ring and Bearer or card list
 
-      for (const card of drawDeck) {
-        // TODO check for non-standard card and update data to standardize
-        if (!details.drawDeck[card]) details.drawDeck[card] = { inDeck: 0, played: 0, seen: 0 }
-        details.drawDeck[card].inDeck++
+      for (const cardId of drawDeck) {
+        // check for non-standard card and update data to standardize
+        const standardizedCardId = Card.standardizeId(cardId);
+
+        if (!details.drawDeck[standardizedCardId]) details.drawDeck[standardizedCardId] = { inDeck: 0, played: 0, seen: 0 };
+
+        details.drawDeck[standardizedCardId].inDeck++
+
+        // TODO update both decks with cards played and seen counts
       }
 
       return details;
     }) // End for (const player in Decks)) 
 
-    // TODO update both decks with cards played and seen counts
+    this.document.timestamp = timestamp;
+    this.document.format = format;
+    this.document.winner = winner;
+    this.document.winReason = winReason;
+    this.document.loseReason = loseReason;
+    this.document.decks = decks;
 
-    // TODO process each deck against the class to update and save the DB item for it
-    for await (const deck of decks) {
-      log(`adding deck ${deck.id}`)
-      await Deck.addGame(deck);
-      log(`done adding deck ${deck.id}`)
 
-      // TODO process each card against the class to update and save the DB item for it
-      log(`before card for loop for game ${this.document._id}`)
-      for await (const cardId of Object.keys(deck.drawDeck)) {
-        const card = deck.drawDeck[cardId];
-        const startingFellowship = deck.startingFellowship.includes(cardId);
+    // // TODO process each deck against the class to update and save the DB item for it
+    // for await (const deck of decks) {
+    //   log(`adding deck ${deck.id}`)
+    //   await Deck.addGame(deck);
+    //   log(`done adding deck ${deck.id}`)
 
-        const cardGameData = {
-          id: Card.standardizeId(cardId),
-          player: deck.player,
-          format: deck.format,
-          bid: deck.bid,
-          wentFirst: deck.wentFirst,
-          won: deck.won,
-          winReason: deck.winReason,
-          loseReason: deck.loseReason,
-          startingFellowship,
-          ...card
-        }
+    //   // TODO process each card against the class to update and save the DB item for it
+    //   log(`before card for loop for game ${this.document._id}`)
+    //   for await (const cardId of Object.keys(deck.drawDeck)) {
+    //     const card = deck.drawDeck[cardId];
+    //     const startingFellowship = deck.startingFellowship.includes(cardId);
 
-        // Delay between card adds because I'm cheap so db has a 10 write/second limit
-        if (!cardOptions.saveAsMap) await delay(100);
+    //     const cardGameData = {
+    //       id: Card.standardizeId(cardId),
+    //       player: deck.player,
+    //       format: deck.format,
+    //       bid: deck.bid,
+    //       wentFirst: deck.wentFirst,
+    //       won: deck.won,
+    //       winReason: deck.winReason,
+    //       loseReason: deck.loseReason,
+    //       startingFellowship,
+    //       ...card
+    //     }
+
+    //     // Delay between card adds because I'm cheap so db has a 10 write/second limit
+    //     if (!cardOptions.saveAsMap) await delay(100);
         
-        log(`adding card ${cardGameData.id} for deck ${deck.id}`)
-        await Card.addGame(cardGameData, cardOptions);        
-        log(`done adding card ${cardGameData.id} for deck ${deck.id}`)
-      }
+    //     log(`adding card ${cardGameData.id} for deck ${deck.id}`)
+    //     await Card.addGame(cardGameData, cardOptions);        
+    //     log(`done adding card ${cardGameData.id} for deck ${deck.id}`)
+    //   }
 
-      log(`after card for loop for game ${this.document._id}`)
-    }
+    //   log(`after card for loop for game ${this.document._id}`)
+    // }
     log(`returning for game ${this.document._id}`)
   }
 

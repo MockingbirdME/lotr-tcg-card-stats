@@ -54,20 +54,20 @@ async function processFiles(dir) {
     // throw new Error
   } // End for...of
 
-  const cardMap = Card.getCardMap();
-  log(cardMap);
+  // const cardMap = Card.getCardMap();
+  // log(cardMap);
 
-  for await (const cardId of Object.keys(cardMap)) {
-    console.log(`Processing card: ${cardId}`);
-    const card = cardMap[cardId];
-    await card.save();
-    log(`Done processing card: ${cardId}`);
-    await delay(101);
-  }
+  // for await (const cardId of Object.keys(cardMap)) {
+  //   console.log(`Processing card: ${cardId}`);
+  //   const card = cardMap[cardId];
+  //   await card.save();
+  //   log(`Done processing card: ${cardId}`);
+  //   await delay(101);
+  // }
 
-  Card.clearCardMap();
-  const updatedCardMap = Card.getCardMap();
-  log(updatedCardMap); 
+  // Card.clearCardMap();
+  // const updatedCardMap = Card.getCardMap();
+  // log(updatedCardMap);
 }
 
 const gamesDirectory = path.resolve(process.env.GAME_DIRECTORY);

@@ -112,7 +112,7 @@ const views = {
     
     emit(overallWinPercent, overallWinCount + overallLoseCount);
   }`,
-  allCardsById: `function(doc) {
+  allCardsByIdOld: `function(doc) {
     var split = doc._id.split(':');
     if (split[0] === "card") emit(null, 1)
   }`,
@@ -131,7 +131,18 @@ const views = {
   }`,
   allGamesById: `function(doc) {
     var split = doc._id.split(':');
-    if (split[0] === "game") emit(null, 1)
+    if (split[0] === "game") emit(doc.timestamp, 1)
+  }`,
+  allCardsById: `function(doc) {
+    var split = doc._id.split(':');
+    if (split[0] !== "game") return
+
+    for (var i = 0; i < doc.decks.length; i++) {
+      for (var c = 0; c < Object.keys(doc.decks[i].drawDeck).length; c++) {
+        var cardId = Object.keys(doc.decks[i].drawDeck)[c];
+        emit(cardId, doc.timestamp)
+      }
+    }
   }`
 };
 
@@ -148,46 +159,12 @@ const formats = [
 ];
 
 for (const format of formats) {
-  const winRateKey = `allCardsBy${format.replace(' ', '')}WinRate`;
-  views[winRateKey] = `function(doc) {
-    var split = doc._id.split(':');
-    if (split[0] !== "card") return;
-    var formatWinCount = 0;
-      if (doc.winResults && doc.winResults.format && doc.winResults.format["${format}"]) {
-        formatWinCount = doc.winResults.format["${format}"];
-      }
-      
-      var formatLoseCount = 0;
-      if (doc.loseResults &&  doc.loseResults.format && doc.loseResults.format["${format}"]) {
-        formatLoseCount = doc.loseResults.format["${format}"];
-      }
-
-      var formatGamesPlayed = (formatWinCount + formatLoseCount);
-      
-      var formatWinPercent = formatWinCount / formatGamesPlayed;
-    
-      if (formatWinCount + formatLoseCount) emit(formatWinPercent, formatGamesPlayed);
-  }`
-
-  const gamesPlayedKey = `allCardsBy${format.replace(' ', '')}GamesPlayed`;
+  const gamesPlayedKey = `allGamesOf${format.replace(/ /g, '')}Format`;
   views[gamesPlayedKey] = `function(doc) {
     var split = doc._id.split(':');
-    if (split[0] !== "card") return;
-    var formatWinCount = 0;
-      if (doc.winResults && doc.winResults.format && doc.winResults.format["${format}"]) {
-        formatWinCount = doc.winResults.format["${format}"];
-      }
-      
-      var formatLoseCount = 0;
-      if (doc.loseResults &&  doc.loseResults.format && doc.loseResults.format["${format}"]) {
-        formatLoseCount = doc.loseResults.format["${format}"];
-      }
-
-      var formatGamesPlayed = (formatWinCount + formatLoseCount);
-
-      var formatWinPercent = formatWinCount / formatGamesPlayed;
-          
-      if (formatGamesPlayed) emit(formatGamesPlayed, formatWinPercent);
+    if (split[0] !== "game") return;
+    if (doc.format !== "${format}") return;
+    emit(doc.timestamp, 1);
   }`
 
   // TODO add per format deck count view. 
