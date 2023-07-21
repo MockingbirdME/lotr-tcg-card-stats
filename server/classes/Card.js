@@ -4,11 +4,24 @@ import cloudant from '../lib/cloudant.js'
 
 import Results from './Results.js';
 import { delay } from '../lib/utils.js';
+import { formats } from '../lib/constants.js';
 
 // This is used only for mass game adds run from a dev machine.
 let cardSaveMap = {};
 
 export default class Card {
+
+  static async loadAll() {
+      const view = 'allCardsById';
+
+      const {result} = await cloudant.postView({
+        view,
+        includeDocs: true
+      });
+
+      return result.rows.map(row => row.doc);
+    }
+
 
   static async loadWinRates({
     view = 'allCardsByOverallWinRate',
@@ -122,20 +135,33 @@ export default class Card {
     
     this.document = data;
 
+    this._results = this.document.results || {};
+
+    for (const format of formats) {
+      if (!this._results[format]) this._results[format] = {};
+
+      this._results[format].won = new Results(this._results[format].won);
+      this._results[format].lost = new Results(this._results[format].lost);
+    }
+
     // TODO Load Card name
     
   } // End constructor
 
-  get loseResults() {
-    if (!this._loseResults) this._loseResults = new Results(this.document.loseResults)
-
-    return this._loseResults
+  get results() {
+    return this._results;
   }
-  
-  get winResults() {
-    if (!this._winResults) this._winResults = new Results(this.document.winResults)
 
-    return this._winResults
+  formatResults(format) {
+    if (!this.results[format]) {
+      log(`Unknown Format "${format}"`);
+      this._results[format] = {
+        won: new Results(),
+        lost: new Results()
+      }
+    }
+
+    return this.results[format];
   }
 
   addGame(gameDetails) {
@@ -153,8 +179,9 @@ export default class Card {
       seen} = gameDetails;
 
     // TODO validate that the details look right. 
-
-    const appropriateResults = won ? this.winResults : this.loseResults;
+    const formatResults = this.formatResults(format);
+    const appropriateResults = won ? formatResults.won : formatResults.lost;
+    log(appropriateResults)
 
     appropriateResults.increaseCount(wentFirst);
 
@@ -169,9 +196,9 @@ export default class Card {
   }
 
   async save() {
-    const doc = {...this.document, winResults: this.winResults, loseResults: this.loseResults}
+    const doc = {...this.document, results: this.results}
 
-    log(`saving ${this.document._id}`)
+    log(`saving ${this.document._id}`);
     
     await cloudant.postDocument(doc);
   }

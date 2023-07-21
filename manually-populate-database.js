@@ -7,6 +7,7 @@ import path from 'path';
 import Game from './server/classes/Game.js';
 import Card from './server/classes/Card.js';
 import { delay } from './server/lib/utils.js';
+import { pcFormats } from './server/lib/constants.js';
 
 let count = 0;
 const startTime = new Date();
@@ -21,9 +22,15 @@ async function processFile(dir, file) {
   const bufferedContents = fs.readFileSync(`${dir}/${file}`)
   const contents = JSON.parse(bufferedContents)
 
+  if (!pcFormats.includes(contents.GameReplayInfo.format_name)) {
+    log(`skipping file ${dir}/${file}, ${contents.GameReplayInfo.format_name} is not a PC format`)
+    return;
+  }
+
   await Game.recordGame(contents, { card: { saveAsMap: true } })
     .catch(error => {
       log(`Got an error processing file name ${file}: "${error}"`)
+      log(error)
     });
   
   log(`finished processing file ${dir}/${file}`)
@@ -54,7 +61,7 @@ async function processFiles(dir) {
     console.log(`Processing card: ${cardId}`);
     const card = cardMap[cardId];
     await card.save();
-    log(`Done processing card: ${cardId}`)
+    log(`Done processing card: ${cardId}`);
     await delay(101);
   }
 

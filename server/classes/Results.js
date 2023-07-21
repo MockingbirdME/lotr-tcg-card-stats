@@ -27,5 +27,4 @@ export default class Results {
     
     this[field][key]++
   }
-  
 }
