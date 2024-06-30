@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const headers = [ "Card", "Block", "Category/Count", "Games", "Win Rate", "Play Rate", "Weighted Play Rate", "Weighted Inclusion Rate" ];
+const headers = [ "Card", "Block", "Category/Count", "Games", "Win Rate", "Play Rate", "Weighted Play Rate", "Weighted Inclusion Rate", "Pool Size" ];
 
 let formatStats = {};
 
@@ -28,8 +28,15 @@ function getRates({ gamesPlayed, count, category, block }) {
 
   rates.playRate = (gamesPlayed/gamesPlayedInFormat).toFixed(4);
 
-  if (category === "ring" || category === "ringBearer" || category === "sites") {
+  if (category === "ring" || category === "ringBearer") {
     const averagePlayRate = (1 / formatTotals[category].uniqueCardCount).toFixed(4);
+    rates.weightedPlayRate = (rates.playRate/averagePlayRate).toFixed(2);
+    rates.inclusionRate = rates.playRate;
+    rates.weightedInclusionRate = rates.weightedPlayRate;
+  }
+
+  if (category === "sites") {
+    const averagePlayRate = (9 / formatTotals[category].uniqueCardCount).toFixed(4);
     rates.weightedPlayRate = (rates.playRate/averagePlayRate).toFixed(2);
     rates.inclusionRate = rates.playRate;
     rates.weightedInclusionRate = rates.weightedPlayRate;
@@ -43,8 +50,13 @@ function getRates({ gamesPlayed, count, category, block }) {
 
     const expectedGamesIncluded = averageUniqueInclusionRate * gamesPlayedInFormat;
 
+    // TODO figure out how to get weighted play rate for draw deck cards
     rates.weightedPlayRate = "Unknown";
-    rates.weightedInclusionRate = (gamesPlayed / expectedGamesIncluded).toFixed(2);
+
+    // TODO determine if inclusion rates are useful for individual card counts and if so, how best to calculate them.
+    rates.weightedInclusionRate = count === "Any"
+      ? (gamesPlayed / expectedGamesIncluded).toFixed(2)
+      : "Unknown";
   }
 
   return rates;
@@ -60,7 +72,9 @@ function createLineFor( cardName, block, count, { wins, losses }, metadata ) {
 
   const { playRate, weightedPlayRate, weightedInclusionRate } = getRates({ gamesPlayed, count, category, block });
 
-  return `"${cardName}",${block},${categoryCountString},${gamesPlayed},${winRate},${playRate},${weightedPlayRate},${weightedInclusionRate}`;
+  const poolSize = formatStats[block].totals[category].uniqueCardCount;
+
+  return `"${cardName}",${block},${categoryCountString},${gamesPlayed},${winRate},${playRate},${weightedPlayRate},${weightedInclusionRate},${poolSize}`;
 }
 
 function processCountsFor(cardName, block, blockStats, metadata) {
