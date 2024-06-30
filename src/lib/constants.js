@@ -18,14 +18,14 @@ export const formats = [
   "Towers Standard - Sets 1-4",
   "Towers Standard - Sets 1-5",
   "Limited - TH",
-  "Limited - TTT",
+  "Limited - TTT"
 ];
 
-export const pcFormats = [  
+export const pcFormats = [
   "Fellowship Block (PC)",
   "Movie Block (PC)",
   "Expanded (PC)"
-]
+];
 
 export const promoMap = {
   "7_84": "1_102",
@@ -301,4 +301,4 @@ export const promoMap = {
   "0_54": "9_48",
   "0_52": "9_51",
   "0_53": "9_52"
-}
+};

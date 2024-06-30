@@ -6,3 +6,7 @@
 
 # Temp Files
 temp*
+
+# Others
+
+.DS_Store

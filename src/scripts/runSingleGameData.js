@@ -1,4 +1,7 @@
-{
+import CardCollection from "../classes/CardCollection.js";
+import Game from "../classes/Game.js";
+
+const exampleGameData = {
   "AllCards": {
       "0": "1_324",
       "1": "1_334",
@@ -805,4 +808,14 @@
       249
   ],
   "WentFirst": "benc"
-}
+};
+
+const testGame = new Game(exampleGameData);
+
+console.log(JSON.stringify(testGame, null, 2));
+
+const collection = new CardCollection();
+
+testGame.addToCardCollection(collection);
+
+collection.logCardStats();
