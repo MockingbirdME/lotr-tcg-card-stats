@@ -1,7 +1,10 @@
+import 'dotenv/config.js';
+
 import { Parser } from '@json2csv/plainjs';
 
 import Card from "./server/classes/Card.js";
 
+// I didn't note this file when I wrote it, it doesn't currently seem to work. That's ok, we'll come back to it.
 
 function getStats(card, format) {
   const formatWins = card.winResults?.format?.[format] || 0;
@@ -14,24 +17,24 @@ function getStats(card, format) {
   return {
     winRate: formatWins / formatGames,
     gamesPlayed: formatGames
-  }
+  };
 }
 
 function getFellowshipStats(card) {
-  return getStats(card, "Fellowship Block (PC)")
+  return getStats(card, "Fellowship Block (PC)");
 }
 
 function getMovieStats(card) {
-  return getStats(card, "Movie Block (PC)")
+  return getStats(card, "Movie Block (PC)");
 }
 
 function getExpandedStats(card) {
-  return getStats(card, "Expanded (PC)")
+  return getStats(card, "Expanded (PC)");
 }
 
 function rateStats(stats, average) {
 
-  const {winRate, gamesPlayed} = stats;
+  const { winRate, gamesPlayed } = stats;
 
   if (gamesPlayed < (0.1 * average)) return "Unplayed";
 
@@ -49,14 +52,14 @@ function rateStats(stats, average) {
 
   if (winRate >= 0.6 && gamesPlayed < (1.25 * average)) return "Standard Power Picks";
 
-  if (winRate >= 0.6 && gamesPlayed >= (1.25 * average)) return "Meta Dominating Power Picks"
+  if (winRate >= 0.6 && gamesPlayed >= (1.25 * average)) return "Meta Dominating Power Picks";
 
   return "outlier";
 
 }
 
 async function categorizeCards() {
-  const formats = ["FellowshipBlock(PC)"];
+  const formats = [ "FellowshipBlock(PC)" ];
 
   const allCards = await Card.loadAll();
 
@@ -84,10 +87,10 @@ async function categorizeCards() {
     const stats = {
       fellowship: getFellowshipStats(card),
       movie: getMovieStats(card),
-      expanded: getExpandedStats(card),
+      expanded: getExpandedStats(card)
 
       // overall: getOverallStats(card)
-    }
+    };
 
     if (!stats.fellowship && !stats.movie && !stats.expanded) continue;
 
@@ -119,25 +122,25 @@ async function categorizeCards() {
 
   console.log(averageFellowshipGames);
 
-  const csvHeaders = ["ID", "Fellowship Win Rate", "Fellowship Games Played", "Fellowship Rating", "Movie Win Rate", "Movie Games Played", "Movie Rating", "Expanded Win Rate", "Expanded Games Played", "Expanded Rating"];
+  const csvHeaders = [ "ID", "Fellowship Win Rate", "Fellowship Games Played", "Fellowship Rating", "Movie Win Rate", "Movie Games Played", "Movie Rating", "Expanded Win Rate", "Expanded Games Played", "Expanded Rating" ];
 
   const csvRows = [];
 
-  for (const [id, card] of Object.entries(cardStats.cards)) {
+  for (const [ id, card ] of Object.entries(cardStats.cards)) {
     if (card.fellowship) {
       card.fellowship.rating = rateStats(card.fellowship, averageFellowshipGames);
 
       if (!cardStats.fellowshipCards[card.fellowship.rating]) cardStats.fellowshipCards[card.fellowship.rating] = 0;
 
-      cardStats.fellowshipCards[card.fellowship.rating]++
+      cardStats.fellowshipCards[card.fellowship.rating]++;
     }
 
     if (card.movie) {
       card.movie.rating = rateStats(card.movie, averageMovieGames);
-      
+
       if (!cardStats.movieCards[card.movie.rating]) cardStats.movieCards[card.movie.rating] = 0;
 
-      cardStats.movieCards[card.movie.rating]++
+      cardStats.movieCards[card.movie.rating]++;
     }
 
     if (card.expanded) {
@@ -145,12 +148,12 @@ async function categorizeCards() {
 
       if (!cardStats.expandedCards[card.expanded.rating]) cardStats.expandedCards[card.expanded.rating] = 0;
 
-      cardStats.expandedCards[card.expanded.rating]++
+      cardStats.expandedCards[card.expanded.rating]++;
     }
 
     csvRows.push(
-      `${id},${card.fellowship?.winRate || ""},${card.fellowship?.gamesPlayed || ""},${card.fellowship?.rating || "N/A"},${card.movie?.winRate || ""},${card.movie?.gamesPlayed || ""},${card.movie?.rating || "N/A"},${card.expanded?.winRate || ""},${card.expanded?.gamesPlayed || ""},${card.expanded?.rating || "N/A"}`)
- 
+      `${id},${card.fellowship?.winRate || ""},${card.fellowship?.gamesPlayed || ""},${card.fellowship?.rating || "N/A"},${card.movie?.winRate || ""},${card.movie?.gamesPlayed || ""},${card.movie?.rating || "N/A"},${card.expanded?.winRate || ""},${card.expanded?.gamesPlayed || ""},${card.expanded?.rating || "N/A"}`);
+
     cardStats.cards[id] = card;
   }
 
@@ -158,7 +161,7 @@ async function categorizeCards() {
 
 
   const csvHeaderRow = csvHeaders.join(',');
-  const csv = `${csvHeaderRow}\n${csvRows.join('\n')}`
+  const csv = `${csvHeaderRow}\n${csvRows.join('\n')}`;
 
   console.log(csv);
 }

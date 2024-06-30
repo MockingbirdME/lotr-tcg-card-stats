@@ -1,7 +1,7 @@
 import { log } from 'console';
 import { createHash } from 'crypto';
 
-import cloudant from '../lib/cloudant.js'
+import cloudant from '../lib/cloudant.js';
 
 import Results from './Results.js';
 import { delay } from '../lib/utils.js';
@@ -10,10 +10,10 @@ export default class Deck {
 
   static generateDeckId(adventureDeck, drawDeck, ring, ringBearer) {
     const hash = createHash('sha256');
-    hash.update([ringBearer, ring, ...adventureDeck, ...drawDeck.sort()].join());
+    hash.update([ ringBearer, ring, ...adventureDeck, ...drawDeck.sort() ].join());
     return hash.digest('hex');
   }
-  
+
   static async loadById(id) {
     const result = await cloudant.getDocument(`deck:${id}`)
       .then(data => (data.result))
@@ -22,9 +22,9 @@ export default class Deck {
         if (error.status === 404 || error.code === 404) return;
         log(`Got an error processing deck ${id}: "error"`);
       });
-      
+
     if (result) return new Deck(result);
-    return new Deck({_id: `deck:${id}`});
+    return new Deck({ _id: `deck:${id}` });
   }
 
   static async addGame(gameDetails) {
@@ -46,53 +46,53 @@ export default class Deck {
     delete data.id;
 
     this.document = data;
-    
+
   } // End constructor
 
   get loseResults() {
-    if (!this._loseResults) this._loseResults = new Results(this.document.loseResults)
+    if (!this._loseResults) this._loseResults = new Results(this.document.loseResults);
 
-    return this._loseResults
+    return this._loseResults;
   }
-  
-  get winResults() {
-    if (!this._winResults) this._winResults = new Results(this.document.winResults)
 
-    return this._winResults
+  get winResults() {
+    if (!this._winResults) this._winResults = new Results(this.document.winResults);
+
+    return this._winResults;
   }
 
   addGame(gameDetails) {
-    const { 
-      id, 
-      player, 
-      format, 
-      bid, 
-      wentFirst, 
-      won, 
-      winReason, 
-      loseReason, 
+    const {
+      id,
+      player,
+      format,
+      bid,
+      wentFirst,
+      won,
+      winReason,
+      loseReason,
       adventureDeck,
       drawDeck,
       startingFellowship } = gameDetails;
 
-    // TODO validate that the details look right. 
+    // TODO validate that the details look right.
 
     const appropriateResults = won ? this.winResults : this.loseResults;
 
     appropriateResults.increaseCount(wentFirst);
 
-    for (const resultKey of ['player', 'bid', 'winReason', 'loseReason', 'startingFellowship', 'format']) {
+    for (const resultKey of [ 'player', 'bid', 'winReason', 'loseReason', 'startingFellowship', 'format' ]) {
       const fieldKey = resultKey === startingFellowship
         ? gameDetails[resultKey].sort().join(",")
-        : gameDetails[resultKey]
+        : gameDetails[resultKey];
       appropriateResults.increaseFieldCount(resultKey, fieldKey);
     }
   }
 
   async save() {
-    const doc = {...this.document, winResults: this.winResults, loseResults: this.loseResults}
+    const doc = { ...this.document, winResults: this.winResults, loseResults: this.loseResults };
 
-    log(`saving ${this.document._id}`)
+    log(`saving ${this.document._id}`);
 
     await cloudant.postDocument(doc);
   }

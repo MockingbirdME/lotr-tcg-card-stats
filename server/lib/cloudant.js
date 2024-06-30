@@ -143,6 +143,12 @@ const views = {
         emit(cardId, doc.timestamp)
       }
     }
+  }`,
+  allCardsByNumericId: `function(doc) {
+    var split = doc._id.split(':');
+    if (split[0] !== "card") return;
+    if (isNaN(parseInt(split[1]))) return;
+    emit(doc.id, 1)
   }`
 };
 
@@ -165,14 +171,14 @@ for (const format of formats) {
     if (split[0] !== "game") return;
     if (doc.format !== "${format}") return;
     emit(doc.timestamp, 1);
-  }`
+  }`;
 
-  // TODO add per format deck count view. 
+  // TODO add per format deck count view.
 
 }
 
 
-for (const inDeckCount of [1, 2, 3, 4]) {
+for (const inDeckCount of [ 1, 2, 3, 4 ]) {
   const gamesPlayedCountKey = `allCardsByGamesPlayedWith${inDeckCount}InDeck`;
   views[gamesPlayedCountKey] = `function(doc) {
     var split = doc._id.split(':');
@@ -191,7 +197,7 @@ for (const inDeckCount of [1, 2, 3, 4]) {
       var formatWinPercent = formatWinCount / formatGamesPlayed;
 
       if (formatGamesPlayed) emit(formatGamesPlayed, formatWinPercent);
-  }`
+  }`;
 
   const gamesPlayedRateKey = `allCardsByWinRateWith${inDeckCount}InDeck`;
   views[gamesPlayedRateKey] = `function(doc) {
@@ -211,7 +217,7 @@ for (const inDeckCount of [1, 2, 3, 4]) {
       var formatWinPercent = formatWinCount / formatGamesPlayed;
 
       if (formatGamesPlayed) emit(formatWinPercent, formatGamesPlayed);
-  }`
+  }`;
 }
 
 /* eslint-enable no-var,no-undef */
@@ -223,11 +229,11 @@ const designDoc = {
 
 // For each view add them to the design doc in the format Cloudant understands.
 for (const key of Object.keys(views)) {
-  designDoc.views[key] = {map: views[key]};
+  designDoc.views[key] = { map: views[key] };
 }
 
 // Get any existing design docs that match the 'allDocs' one we add programmatically.
-const {result: existingDoc} = await client.getDesignDocument({db, ddoc: 'allDocs', latest: true})
+const { result: existingDoc } = await client.getDesignDocument({ db, ddoc: 'allDocs', latest: true })
   .catch(error => {
     console.error(error);
     if (error.status === 404 || error.code === 404) {
@@ -240,7 +246,7 @@ const {result: existingDoc} = await client.getDesignDocument({db, ddoc: 'allDocs
 if (JSON.stringify(designDoc.views) !== JSON.stringify(existingDoc?.views)) {
   await client.putDesignDocument({
     db,
-    designDocument: {...designDoc, _rev: existingDoc?._rev},
+    designDocument: { ...designDoc, _rev: existingDoc?._rev },
     ddoc: 'allDocs'
   });
 }
@@ -249,6 +255,6 @@ if (JSON.stringify(designDoc.views) !== JSON.stringify(existingDoc?.views)) {
 export default {
   getDocument: (docId) => client.getDocument({ db, docId }),
   postDocument: (document) => client.postDocument({ db, document }),
-  postView: (options) => client.postView({...options, db, ddoc: 'allDocs'}),
+  postView: (options) => client.postView({ ...options, db, ddoc: 'allDocs' })
   // TODO Add other functions, as they are needed.
 };
