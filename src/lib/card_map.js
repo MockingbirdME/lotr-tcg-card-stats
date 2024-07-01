@@ -1,4 +1,4 @@
-import { promoMap } from "../../server/lib/constants.js";
+import { promoMap } from "./constants.js";
 
 export function getCardName(cardId) {
   const nonFoilOrTangwarId = cardId.replace(/[T*]/g, "");

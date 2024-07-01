@@ -63,7 +63,10 @@ function addRatingsToCsv(filepath) {
 
 }
 
+// 2023 v2 metadata rollout - 2024 Yuletide
+// const filepath = "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.csv/2023 v2 metadata rollout - Yuletide/all.csv";
 
-const filepath = "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.csv/2023 v2 metadata rollout - Yuletide/all.csv";
+// 2023 yuletide to post 2024 WC errata
+const filepath = "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.csv/2023 yuletide to post 2024 WC errata/all.csv";
 
 addRatingsToCsv(path.resolve(filepath));

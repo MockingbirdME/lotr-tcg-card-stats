@@ -157,7 +157,11 @@ function jsonToCsv(filepath) {
   fs.writeFileSync(filepath.replaceAll(".json", ".csv"), csvContent);
 }
 
-const filepath = "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/all.json";
+// 2023 v2 metadata rollout - 2024 Yuletide
+// const filepath = "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/all.json";
+
+// 2023 yuletide to post 2024 WC errata
+const filepath = "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 yuletide to post 2024 WC errata/all.json";
 
 jsonToCsv(path.resolve(filepath));
 

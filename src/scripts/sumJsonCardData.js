@@ -55,7 +55,6 @@ function sumDataInPaths(pathArray, outputFile) {
 
     parseJson(contents, data);
   }
-  console.log(formatUniqueCounts);
 
   applyUniqueCountsToData(data);
 
@@ -63,16 +62,29 @@ function sumDataInPaths(pathArray, outputFile) {
 }
 
 
+// 2023 v2 metadata rollout - Yuletide
+// const pathArray = [
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-june.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-july.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-aug.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-sept.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-oct.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-nov.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-dec.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2024-jan.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2024-feb.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2024-march.json",
+//   "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2024-april.json"
+// ];
 
+// const outputFile = path.resolve("/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/all.json");
+
+// 2023 yuletide to post 2024 WC errata
 const pathArray = [
-  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-june.json",
-  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-july.json",
-  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-aug.json",
-  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-sept.json",
-  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-oct.json",
-  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-nov.json"
+  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 yuletide to post 2024 WC errata/2024-may.json",
+  "/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 yuletide to post 2024 WC errata/2024-june.json"
 ];
 
-const outputFile = path.resolve("/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/all.json");
+const outputFile = path.resolve("/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 yuletide to post 2024 WC errata/all.json");
 
 sumDataInPaths(pathArray, outputFile);

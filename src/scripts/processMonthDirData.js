@@ -15,7 +15,9 @@ async function processFile(dir, file, collection, countLimit) {
   const bufferedContents = fs.readFileSync(`${dir}/${file}`);
   const contents = JSON.parse(bufferedContents);
 
-  if (!pcFormats.includes(contents.GameReplayInfo.format_name)) {
+  const format = contents.GameReplayInfo?.format_name || contents.gameReplayInfo?.format_name;
+
+  if (!pcFormats.includes(format)) {
     // log(`skipping file ${dir}/${file}, ${contents.GameReplayInfo.format_name} is not a PC format`);
     return;
   }
@@ -60,9 +62,18 @@ async function processFiles(gameDirectory, outputFile, countLimit) {
   fs.writeFileSync(outputFile, stringifiedCollection);
 }
 
-const gamesDirectory = path.resolve("/Users/devon/Documents/replays/2023 v2 metadata rollout - Yuletide/11");
+// Commented out all but one section
 
-const outputFile = path.resolve("/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-nov.json");
+// 2023 v2 metadata rollout - 2024 Yuletide
+// const gamesDirectory = path.resolve("/Users/devon/Documents/replays/2023 v2 metadata rollout - Yuletide/12");
+
+// const outputFile = path.resolve("/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 v2 metadata rollout - Yuletide/2023-dec.json");
+
+
+// 2023 yuletide to post 2024 WC errata
+const gamesDirectory = path.resolve("/Users/devon/Documents/replays/2023 yuletide to post 2024 WC errata/06");
+
+const outputFile = path.resolve("/Users/devon/Code/personal/lotr-tcg-card-stats/src/cardData.json/2023 yuletide to post 2024 WC errata/2024-june.json");
 
 const countLimit = null;
 

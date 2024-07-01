@@ -139,18 +139,18 @@ import { getCardName } from '../lib/card_map.js';
 
 export default class Game {
 
-  static processCardsForDeckGamePlayed(cards, AllCards, PlayedCards, SeenCards) {
+  static processCardsForDeckGamePlayed(cards, allCards, playedCards, seenCards) {
     const cardCounts = {};
     for (const cardId of cards) {
       // TODO check with Ketura if played and seen cards will get the same card populated multiple times if it was played multiple times.
       // NOTE: There seems to be something wrong with the played list compared to the all cards list where cards are listed in all cards twiceish and played only looks from the second half of the list; need to chat with Ketura to get a feel for how this is supposed to work.
-      // const cardReference = Object.keys(AllCards).find(key => AllCards[key] === card);
-      // delete AllCards[cardReference];
+      // const cardReference = Object.keys(allCards).find(key => allCards[key] === card);
+      // delete allCards[cardReference];
 
-      // const playedNTimes = PlayedCards.filter(reference => `${reference}` === cardReference).length;
+      // const playedNTimes = playedCards.filter(reference => `${reference}` === cardReference).length;
       // console.log(`${card} - ${cardReference} Played times: ${playedNTimes}`);
       // if (playedNTimes > 1) console.log('PLAYED MULTIPLE TIMES!!!!!!');
-      // const seenNTimes = SeenCards.filter(reference => `${reference}` === cardReference).length;
+      // const seenNTimes = seenCards.filter(reference => `${reference}` === cardReference).length;
 
       // TODO sanitize card IDs
       const cardName = getCardName(cardId);
@@ -187,10 +187,10 @@ export default class Game {
     return cardCounts;
   }
 
-  static parseDeck(deckData, { winner, lose_reason: loseReason, win_reason: winReason, highestSiteReached, highestSitePlayed, wentFirst, bid, AllCards, PlayedCards, SeenCards }) {
-    const { AdventureDeck: sites, DrawDeck, Ring: ring, RingBearer: ringBearer, StartingFellowship } = deckData;
+  static parseDeck(deckData, { winner, lose_reason: loseReason, win_reason: winReason, highestSiteReached, highestSitePlayed, wentFirst, bid, allCards, playedCards, seenCards }) {
+    const { sites, drawDeck, ring, ringBearer, startingFellowship } = deckData;
 
-    const processedCardList = Game.processCardsForDeckGamePlayed(DrawDeck, AllCards, PlayedCards, SeenCards);
+    const processedCardList = Game.processCardsForDeckGamePlayed(drawDeck, allCards, playedCards, seenCards);
 
     return {
       won: winner,
@@ -207,32 +207,55 @@ export default class Game {
     };
   }
 
-  static parseDecks(decksData, { lose_reason, loser, loser_site, win_reason, winner, winner_site, Bids, WentFirst, AllCards, PlayedCards, SeenCards }) {
+  static parseDecks(decksData, { lose_reason, loser, loser_site, win_reason, winner, winner_site, bids, wentFirst, allCards, playedCards, seenCards }) {
     const highestSitePlayed = winner_site > loser_site ? winner_site : loser_site;
 
-    const winningDeck = Game.parseDeck(decksData[winner], { winner: true, lose_reason, win_reason, highestSiteReached: winner_site, highestSitePlayed, wentFirst: winner === WentFirst, bid: Bids[winner], AllCards, PlayedCards, SeenCards });
+    const winningDeck = Game.parseDeck(decksData[winner], { winner: true, lose_reason, win_reason, highestSiteReached: winner_site, highestSitePlayed, wentFirst: winner === wentFirst, bid: bids[winner], allCards, playedCards, seenCards });
 
-    const losingDeck = Game.parseDeck(decksData[loser], { winner: false, lose_reason, win_reason, highestSiteReached: loser_site, highestSitePlayed, wentFirst: loser === WentFirst, bid: Bids[loser], AllCards, PlayedCards, SeenCards });
+    const losingDeck = Game.parseDeck(decksData[loser], { winner: false, lose_reason, win_reason, highestSiteReached: loser_site, highestSitePlayed, wentFirst: loser === wentFirst, bid: bids[loser], allCards, playedCards, seenCards });
 
     return { winningDeck, losingDeck };
   }
 
   constructor(gameDetails, options = {}) {
-    const { AllCards, Bids, Canceled, Conceded, Decks, GameReplayInfo, GameStarted, MetadataVersion, PlayedCards, SeenCards, WentFirst } = gameDetails;
+    // Top level keys changed cases in April 2024, we grab whichever is available
+    const allCards = gameDetails.allCards || gameDetails.AllCards;
+    const bids = gameDetails.bids || gameDetails.Bids;
+    const canceled = gameDetails.canceled || gameDetails.Canceled;
+    const conceded = gameDetails.conceded || gameDetails.Conceded;
+    const decksData = gameDetails.decks || gameDetails.Decks;
+    const gameReplayInfo = gameDetails.gameReplayInfo || gameDetails.GameReplayInfo;
+    const gameStarted = gameDetails.gameStarted || gameDetails.GameStarted;
+    const metadataVersion = gameDetails.metadataVersion || gameDetails.MetadataVersion;
+    const playedCards = gameDetails.playedCards || gameDetails.PlayedCards;
+    const seenCards = gameDetails.seenCards || gameDetails.SeenCards;
+    const wentFirst = gameDetails.wentFirst || gameDetails.WentFirst;
 
-    const { format_name, lose_reason, loser, lose_recording_id, loser_site, win_reason, win_recording_id, winner, winner_site } = GameReplayInfo;
+    const decks = { };
+
+    for (const [ player, deck ] of Object.entries(decksData)) {
+      decks[player] = {
+        sites: deck.adventureDeck || deck.AdventureDeck,
+        drawDeck: deck.drawDeck || deck.DrawDeck,
+        ring: deck.ring || deck.Ring,
+        ringBearer: deck.ringBearer || deck.RingBearer,
+        startingFellowship: deck.startingFellowship || deck.StartingFellowship
+      };
+    }
+
+    const { format_name, lose_reason, loser, lose_recording_id, loser_site, win_reason, win_recording_id, winner, winner_site } = gameReplayInfo;
 
     this._fullyLoaded = false;
 
     this._id = `${win_recording_id}-${lose_recording_id}`;
 
-    if (!GameStarted) {
+    if (!gameStarted) {
       console.log(`Match "${this._id}" never started, skipping processing`);
       return;
     }
 
-    if ( MetadataVersion !== 2 ) {
-      console.log(`Match "${this._id}" has unprocessable metadata version ${MetadataVersion}, skipping processing`);
+    if ( metadataVersion !== 2 ) {
+      console.log(`Match "${this._id}" has unprocessable metadata version ${metadataVersion}, skipping processing`);
       return;
     }
 
@@ -245,7 +268,7 @@ export default class Game {
 
     this._format = format_name;
 
-    const { winningDeck, losingDeck } = Game.parseDecks(Decks, { lose_reason, loser, loser_site, win_reason, winner, winner_site, Bids, WentFirst, AllCards, PlayedCards, SeenCards });
+    const { winningDeck, losingDeck } = Game.parseDecks(decks, { lose_reason, loser, loser_site, win_reason, winner, winner_site, bids, wentFirst, allCards, playedCards, seenCards });
 
     this._winningDeck = winningDeck;
 
